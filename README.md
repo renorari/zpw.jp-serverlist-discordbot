@@ -1,1 +1,2 @@
 # zpw.jp-serverlist-discordbot
+zpw.jpのMinecraftサーバーリストをDiscordBotで表示するプログラム
