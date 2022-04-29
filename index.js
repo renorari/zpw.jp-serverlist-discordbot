@@ -5,6 +5,12 @@ const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder, SlashCommandSubcommandBuilder } = require("@discordjs/builders");
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 const config = require("./config.json");
+const sliceByNumber = (array, number) => {
+    const length = Math.ceil(array.length / number);
+    return new Array(length).fill().map((_, i) =>
+        array.slice(i * number, (i + 1) * number)
+    );
+};
 const rest = new REST({ version: '9' }).setToken(config.discordBotToken);
 client.login(config.discordBotToken);
 
@@ -43,16 +49,19 @@ client.on("ready", async () => {
 
     servers = await fetch("https://api.zpw.jp/serverlist/index.php").then((res) => res.json());
     setInterval(async () => {
-        servers = await fetch("https://api.zpw.jp/serverlist/index.php").then((res) => res.json());
-    }, 60000);
+        var now_servers = await fetch("https://api.zpw.jp/serverlist/index.php").then((res) => res.json());
+        if (now_servers != servers) {
+            servers = now_servers;
+            client.channels.cache.forEach(async (channel) => {
+                if (channel.type != "GUILD_TEXT") return;
+                if (!channel.topic) return;
+                if (!channel.topic.match(/mc.notification/)) return;
 
-    new Proxy(servers, {
-        "defineProperty": () => {
-            client.channels.cache.map((channel) => (channel.type == "GUILD_TEXT" && channel.topic && channel.topic.match(/mc.notification/))).forEach(async (channel) => {
-                var list = [];
+                var lists = [];
                 await Promise.all(servers.map(async (server) => {
                     var owner_name = await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${server.owner}`).then((res) => res.json()).then((data) => data.name);
-                    list.push({
+                    lists.push({
+                        "title": server.servername,
                         "author": {
                             "iconURL": `https://crafthead.net/avatar/${server.owner}`,
                             "name": owner_name
@@ -85,12 +94,16 @@ client.on("ready", async () => {
                     })
                 }));
                 await channel.send({
-                    "content": "サーバーリスト",
-                    "embeds": list
+                    "content": "サーバーリスト"
+                });
+                sliceByNumber(lists, 10).forEach(async (list) => {
+                    await channel.send({
+                        "embeds": list
+                    });
                 });
             });
-        }
-    });
+        };
+    }, 60000);
 });
 
 client.on("interactionCreate", async interaction => {
@@ -114,10 +127,11 @@ client.on("interactionCreate", async interaction => {
                 ]
             });
         } else if (interaction.commandName == "servers") {
-            var list = [];
+            var lists = [];
             await Promise.all(servers.map(async (server) => {
                 var owner_name = await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${server.owner}`).then((res) => res.json()).then((data) => data.name);
-                list.push({
+                lists.push({
+                    "title": server.servername,
                     "author": {
                         "iconURL": `https://crafthead.net/avatar/${server.owner}`,
                         "name": owner_name
@@ -150,8 +164,12 @@ client.on("interactionCreate", async interaction => {
                 })
             }));
             await interaction.editReply({
-                "content": "サーバーリスト",
-                "embeds": list
+                "content": "サーバーリスト"
+            });
+            sliceByNumber(lists, 10).forEach(async (list) => {
+                await interaction.channel.send({
+                    "embeds": list
+                });
             });
         } else if (interaction.commandName == "notification") {
             if (interaction.options.getSubcommand() == "enable") {
