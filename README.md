@@ -1,0 +1,1 @@
+# zpw.jp-serverlist-discordbot
