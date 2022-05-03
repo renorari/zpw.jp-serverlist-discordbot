@@ -1,6 +1,6 @@
 {
   "name": "zpw.jp-serverlist-discordbot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "zpw.jpのMinecraftサーバーリストをDiscordBotで表示するプログラム",
   "main": "index.js",
   "scripts": {
