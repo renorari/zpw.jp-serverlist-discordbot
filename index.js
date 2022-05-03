@@ -18,34 +18,32 @@ var servers = [];
 
 client.on("ready", async () => {
     console.log(`${client.user.tag}にログインしました。\nCreate by Renorari`);
-    client.guilds.cache.map((guild) => guild.id).forEach((guildId) => {
-        rest.put(
-            Routes.applicationGuildCommands(client.user.id, guildId),
-            {
-                body: [
-                    new SlashCommandBuilder()
-                        .setName("ping")
-                        .setDescription("現在の接続状況を表示します"),
-                    new SlashCommandBuilder()
-                        .setName("servers")
-                        .setDescription("サーバーリストを表示します"),
-                    new SlashCommandBuilder()
-                        .setName("notification")
-                        .setDescription("通知機能")
-                        .addSubcommand(
-                            new SlashCommandSubcommandBuilder()
-                                .setName("enable")
-                                .setDescription("有効にします")
-                        )
-                        .addSubcommand(
-                            new SlashCommandSubcommandBuilder()
-                                .setName("disable")
-                                .setDescription("無効にします")
-                        )
-                ]
-            },
-        );
-    });
+    rest.put(
+        Routes.applicationGuildCommands(client.user.id),
+        {
+            body: [
+                new SlashCommandBuilder()
+                    .setName("ping")
+                    .setDescription("現在の接続状況を表示します"),
+                new SlashCommandBuilder()
+                    .setName("servers")
+                    .setDescription("サーバーリストを表示します"),
+                new SlashCommandBuilder()
+                    .setName("notification")
+                    .setDescription("通知機能")
+                    .addSubcommand(
+                        new SlashCommandSubcommandBuilder()
+                            .setName("enable")
+                            .setDescription("有効にします")
+                    )
+                    .addSubcommand(
+                        new SlashCommandSubcommandBuilder()
+                            .setName("disable")
+                            .setDescription("無効にします")
+                    )
+            ]
+        },
+    );
 
     servers = await fetch("https://api.zpw.jp/serverlist/index.php").then((res) => res.json());
     setInterval(async () => {
